@@ -1,13 +1,6 @@
----
-title: "Reproducible Research Project Assignment 1"
-author: "Ronan1123"
-date: "20 July 2016"
-output: 
-  html_document: 
-    fig_height: 8
-    fig_width: 12
-    keep_md: yes
----
+# Reproducible Research Project Assignment 1
+Ronan1123  
+20 July 2016  
 
 
 ## Introduction
@@ -29,23 +22,69 @@ to be reproduced.
 
 ## Set up the R environment
 First we load the required libraries and set the working directory
-```{r}
+
+```r
 libraries.need <- c("ggplot2", "dplyr", "knitr")
 lapply(libraries.need, require, character.only = TRUE)
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 3.2.2
+```
+
+```
+## Loading required package: dplyr
+```
+
+```
+## Warning: package 'dplyr' was built under R version 3.2.2
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+## 
+## Loading required package: knitr
+```
+
+```
+## Warning: package 'knitr' was built under R version 3.2.2
+```
+
+```
+## [[1]]
+## [1] TRUE
+## 
+## [[2]]
+## [1] TRUE
+## 
+## [[3]]
+## [1] TRUE
+```
+
+```r
 work_dir <- "C:/Users/User/DataScience/Reproducible Research"
 setwd(work_dir)
-
 ```
 
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figures/', 
-                      echo=TRUE, warning=FALSE, message=FALSE)
-options(digits=1, scipen=1)
-```
+
 
 ## Loading and preprocessing the data
 Now we will read in the data
-```{r}
+
+```r
 activity.data <- read.csv('./activity.csv',header=TRUE)
 ```
 
@@ -55,7 +94,8 @@ Then we'll carry out some preprocessing that will be useful later on, including:
 
 2. add a weekday/weekend indicator field as a factor
 
-```{r}
+
+```r
 activity.data$date <- as.Date(activity.data$date)
 activity.data$weekday <- weekdays(activity.data$date)
 weekendday <- c("Saturday", "Sunday")
@@ -69,7 +109,8 @@ activity.data$weekendf <-  factor((activity.data$weekday %in% weekendday),
 Lets chart some of the data so that we can see the steps per day. First we
 summarise the data by date.  For now we will ignore missing values.
 
-```{r}
+
+```r
 summary.day <- 
                 activity.data %>%
                 group_by(date) %>%
@@ -81,23 +122,27 @@ median_daily_steps <- median(summary.day$total_steps, na.rm = TRUE)
 
 A simple histogram is as follows
 
-```{r}
+
+```r
 qplot(total_steps, data = summary.day, geom = "histogram", fill = I("red"), 
       main = "Histogram: Total Steps per day", 
       xlab = "Total Steps", ylab = "Count")
 ```
 
+![](Figures/unnamed-chunk-5-1.png) 
+
 We can see a large incidence of "zeroes" perhaps indicating an issue with missing
 data. 
-The mean number of steps taken per day is `r mean_daily_steps`
-The median number of steps taken per day is `r median_daily_steps `
+The mean number of steps taken per day is 9354.2
+The median number of steps taken per day is 10395
 
 ## What is the average daily activity pattern?
 
 Lets summarise the data along the 5-minute-interval dimension and then chart
 the data to look at some patterns:
 
-```{r}
+
+```r
 summary.5mins <- 
         activity.data %>%
         group_by(interval) %>%
@@ -109,18 +154,21 @@ qplot(data = summary.5mins, x = interval, y = total_steps,
       xlab = "Interval", ylab = "Mean Steps")
 ```
 
+![](Figures/unnamed-chunk-6-1.png) 
 
-The 5 minute interval with the largest mean number of steps is `r summary.5mins$interval[which.max(summary.5mins$total_steps)]`
+
+The 5 minute interval with the largest mean number of steps is 835
 
 ## Imputing missing values
 
-Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data. The number of missing values is `r sum(is.na(activity.data$steps)) `
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data. The number of missing values is 2304
 
 Lets create a new dataset that is equal to the original dataset but with the 
 missing data filled in.  We replace NAs with the average for that particular 
 5-minute interval:
 
-```{r}
+
+```r
 impute.mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
 activity.data$steps <- as.numeric(activity.data$steps)
 
@@ -133,27 +181,35 @@ activity.impute <-
 ```
 
 We can compare differences between the original data-set and the filled in dataset:
-```{r}
+
+```r
 summary.day.impute <- 
                 activity.impute %>%
                 group_by(date) %>%
                 summarise(total_steps = sum(steps, na.rm = TRUE))
 ```
 
-The mean for the "filled in" data set is `r mean(summary.day.impute$total_steps, na.rm = TRUE)` which compares to the mean before imputing of `r mean_daily_steps`
+The mean for the "filled in" data set is 10766.2 which compares to the mean before imputing of 9354.2
 
-The median for the "filled in" data set is `r median(summary.day.impute$total_steps, na.rm = TRUE)` which compares to the median before imputing of `r median_daily_steps`
+The median for the "filled in" data set is 10766.2 which compares to the median before imputing of 10395
 
 Lets plot the updated data:
-```{r}
+
+```r
 qplot(data = summary.day.impute, x = date, y = total_steps, 
       geom = "bar", stat = "identity", fill = I("blue"), 
       main = "Total Steps per day (imputed)", xlab = "Date", ylab = "Total Steps")
+```
 
+![](Figures/unnamed-chunk-9-1.png) 
+
+```r
 qplot(total_steps, data = summary.day.impute, geom = "histogram", fill = I("red"), 
       main = "Histogram: Total Steps per day (imputed)", 
       xlab = "Total Steps", ylab = "Count")
 ```
+
+![](Figures/unnamed-chunk-9-2.png) 
 Note now that there are much fewer "zeroes" as the missing observations have been 
 imputed
 
@@ -162,7 +218,8 @@ imputed
 
 We can compare differences between average steps on a weekend and on a weekday
 
-```{r}
+
+```r
 summary.5mins.impute <- 
         activity.impute %>%
         group_by(interval, weekendf) %>%
@@ -175,8 +232,9 @@ qplot(data = summary.5mins.impute, x = interval, y = mean_steps,
       geom = "line", 
       main = "Mean Steps per interval",
       ylab = "Mean Steps")
-
 ```
+
+![](Figures/unnamed-chunk-10-1.png) 
 
 On inspection of the charts the users activity levels are quite different on 
 weekdays than on the weekends
